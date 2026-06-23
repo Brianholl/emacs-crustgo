@@ -1,0 +1,4 @@
+# ESP32 / ESP32-S3 son Xtensa → toolchain 'esp' (lo instala espup).
+#   espup install  &&  . $HOME/export-esp.sh   (atajo: get_esp)
+[toolchain]
+channel = "esp"

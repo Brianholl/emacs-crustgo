@@ -13,10 +13,16 @@ projectile-bookmarks.eld
 *.elc
 *~
 
-# Artefactos de build de los ejemplos embebidos (ESP32)
+# Artefactos de build embebido (ESP32) — ejemplos y plantillas
 examples/**/build/
 examples/**/target/
 examples/**/sdkconfig
 examples/**/sdkconfig.old
 examples/**/dependencies.lock
 examples/**/managed_components/
+templates/**/build/
+templates/**/target/
+templates/**/sdkconfig
+templates/**/sdkconfig.old
+templates/**/dependencies.lock
+templates/**/managed_components/

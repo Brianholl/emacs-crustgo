@@ -142,8 +142,10 @@ Para instalar las tres cadenas (ESP-IDF, espup/espflash, TinyGo) de una:
 ./install-esp32.sh            # o: ./install-esp32.sh c rust go
 ```
 
-Hay un "blink" listo por lenguaje en [`examples/esp32/`](examples/esp32/), y una
-guía paso a paso en [`examples/esp32/HOWTO.md`](examples/esp32/HOWTO.md).
+Hay un "blink" listo por lenguaje en [`examples/esp32/`](examples/esp32/),
+plantillas de arranque con auto-test por serie en
+[`templates/esp32/`](templates/esp32/), y una guía paso a paso en
+[`examples/esp32/HOWTO.md`](examples/esp32/HOWTO.md).
 
 ---
 
@@ -156,6 +158,7 @@ emacs-crustgo/
 ├── install.sh      instala dependencias + dlv + alias/funciones + paquetes
 ├── install-esp32.sh  toolchains ESP32: ESP-IDF + espup/espflash + TinyGo
 ├── examples/esp32/ blink en C (ESP-IDF), Rust (esp-hal) y Go (TinyGo)
+├── templates/esp32/  plantillas de arranque (hello+blink, auto-test por serie)
 ├── .gitignore      excluye elpa/ y cachés
 └── elpa/           paquetes de Emacs (no se versiona)
 ```

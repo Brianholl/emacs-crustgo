@@ -1,0 +1,15 @@
+[package]
+name = "crustgo-hello"
+version = "0.1.0"
+edition = "2021"
+
+# ESP32 clásico (ZY): cambiá "esp32s3" por "esp32" en las tres deps.
+[dependencies]
+esp-hal       = { version = "0.23.1", features = ["esp32s3"] }
+esp-backtrace = { version = "0.15.0", features = ["esp32s3", "panic-handler", "println"] }
+esp-println   = { version = "0.13.0", features = ["esp32s3", "log"] }
+
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
