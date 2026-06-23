@@ -142,7 +142,8 @@ Para instalar las tres cadenas (ESP-IDF, espup/espflash, TinyGo) de una:
 ./install-esp32.sh            # o: ./install-esp32.sh c rust go
 ```
 
-Hay un "blink" listo por lenguaje en [`examples/esp32/`](examples/esp32/).
+Hay un "blink" listo por lenguaje en [`examples/esp32/`](examples/esp32/), y una
+guía paso a paso en [`examples/esp32/HOWTO.md`](examples/esp32/HOWTO.md).
 
 ---
 

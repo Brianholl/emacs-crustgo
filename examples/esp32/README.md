@@ -1,5 +1,7 @@
 # Ejemplos ESP32
 
+> 📖 **¿Arrancás de cero?** Seguí la guía paso a paso: **[HOWTO.md](HOWTO.md)**.
+
 Tres "blink" mínimos, uno por lenguaje, pensados para las placas de Brian:
 
 | Carpeta          | Lenguaje | ESP32 clásico (ZY) | ESP32-S3 (N16R8) | Toolchain |
