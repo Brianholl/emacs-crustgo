@@ -205,7 +205,53 @@ C → gcc, C++ → g++, Rust → rustc, Go → go run."
 (global-set-key (kbd "<f5>") #'crustgo-compile)
 
 ;; ─────────────────────────────────────────────────────────────
-;; 8. Final: GC normal + custom-file separado
+;; 8. ESP32 / embebido — flashear con F6
+;; ─────────────────────────────────────────────────────────────
+;; F5 compila/corre en el HOST. Para microcontroladores el build+flash
+;; lo maneja cada ecosistema (idf.py / espflash / tinygo), así que F6 va
+;; aparte. Lo más confiable: un archivo .crustgo-flash en la raíz del
+;; proyecto con el comando exacto (puerto, target, etc.). Si no está,
+;; intentamos detectar ESP-IDF / cargo-espflash / TinyGo.
+(defun crustgo-esp-flash ()
+  "F6: build + flash a un ESP32.
+Usa el comando del archivo `.crustgo-flash' del proyecto si existe; si no,
+detecta ESP-IDF (sdkconfig), Rust (Cargo.toml) o TinyGo (go.mod)."
+  (interactive)
+  (when buffer-file-name (save-buffer))
+  (let* ((root (or (locate-dominating-file default-directory ".crustgo-flash")
+                   (locate-dominating-file default-directory "sdkconfig")
+                   (locate-dominating-file default-directory "sdkconfig.defaults")
+                   (locate-dominating-file default-directory "Cargo.toml")
+                   (locate-dominating-file default-directory "go.mod")
+                   default-directory))
+         (flashfile (expand-file-name ".crustgo-flash" root))
+         cmd)
+    (cond
+     ;; 1) comando explícito del proyecto (gana siempre)
+     ((file-exists-p flashfile)
+      (setq cmd (string-trim
+                 (with-temp-buffer
+                   (insert-file-contents flashfile)
+                   (buffer-string)))))
+     ;; 2) ESP-IDF (C/C++)
+     ((or (file-exists-p (expand-file-name "sdkconfig" root))
+          (file-exists-p (expand-file-name "sdkconfig.defaults" root)))
+      (setq cmd "idf.py flash monitor"))
+     ;; 3) Rust embebido (espflash como runner de cargo)
+     ((file-exists-p (expand-file-name "Cargo.toml" root))
+      (setq cmd "cargo run --release"))
+     ;; 4) TinyGo
+     ((file-exists-p (expand-file-name "go.mod" root))
+      (setq cmd "tinygo flash -target=esp32 -monitor .")))
+    (if (and cmd (not (string-empty-p cmd)))
+        (let ((default-directory root))
+          (compile cmd))
+      (message "crustgo: no sé cómo flashear. Creá un .crustgo-flash con el comando."))))
+
+(global-set-key (kbd "<f6>") #'crustgo-esp-flash)
+
+;; ─────────────────────────────────────────────────────────────
+;; 9. Final: GC normal + custom-file separado
 ;; ─────────────────────────────────────────────────────────────
 (setq gc-cons-threshold (* 32 1024 1024))
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))

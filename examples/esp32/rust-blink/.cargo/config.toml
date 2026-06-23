@@ -1,0 +1,15 @@
+# Target por defecto: ESP32-S3. Para el ESP32 clásico (ZY) cambiá las dos
+# apariciones de 'esp32s3' por 'esp32' (y la feature en Cargo.toml).
+[target.xtensa-esp32s3-none-elf]
+# espflash hace el flash + monitor; por eso `cargo run` (= F5/F6) flashea.
+runner = "espflash flash --monitor"
+
+[build]
+target = "xtensa-esp32s3-none-elf"
+
+[unstable]
+# Xtensa no trae core/alloc precompilados → se compilan al vuelo.
+build-std = ["core", "alloc"]
+
+[env]
+ESP_LOG = "INFO"

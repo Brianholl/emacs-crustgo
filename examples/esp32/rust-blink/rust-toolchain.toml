@@ -1,0 +1,8 @@
+# ESP32 / ESP32-S3 son Xtensa → toolchain forkeado 'esp' (lo instala espup).
+#   espup install            # crea el toolchain 'esp' y exporta variables
+#   . $HOME/export-esp.sh    # cargá el entorno antes de compilar
+#
+# (Si algún día usás un chip RISC-V — C3/C6 — esto sería channel = "stable"
+#  con el target riscv32imc/imac-unknown-none-elf.)
+[toolchain]
+channel = "esp"

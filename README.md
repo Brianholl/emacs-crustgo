@@ -123,13 +123,31 @@ También está `dap-mode` (`M-x dap-debug`) para un flujo más moderno.
 
 ---
 
+## ESP32 / embebido (F6)
+
+crustgo también sirve para programar **ESP32** en C, Rust y (con límites) Go.
+El editor/LSP funciona igual; el build+flash lo hace cada ecosistema:
+
+- **C / C++** → ESP-IDF (`idf.py`)
+- **Rust** → `espup` + `espflash` (`cargo run` flashea)
+- **Go** → TinyGo (solo ESP32 clásico, no el S3)
+
+`F5` compila/corre en el **host**; para microcontroladores usá **`F6`**
+(`crustgo-esp-flash`), que lee un archivo `.crustgo-flash` del proyecto con el
+comando de flasheo (o detecta ESP-IDF/cargo/TinyGo).
+
+Hay un "blink" listo por lenguaje en [`examples/esp32/`](examples/esp32/).
+
+---
+
 ## Estructura
 
 ```
 emacs-crustgo/
 ├── early-init.el   UI temprana (sin barras), GC de arranque
-├── init.el         la configuración completa
+├── init.el         la configuración completa (F5 compila · F6 flashea ESP32)
 ├── install.sh      instala dependencias + dlv + alias/funciones + paquetes
+├── examples/esp32/ blink en C (ESP-IDF), Rust (esp-hal) y Go (TinyGo)
 ├── .gitignore      excluye elpa/ y cachés
 └── elpa/           paquetes de Emacs (no se versiona)
 ```
