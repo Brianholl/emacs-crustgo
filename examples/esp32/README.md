@@ -27,7 +27,19 @@ idf.py -p /dev/ttyACM0 flash monitor
 
 Cada carpeta tiene su propio `README.md` con los requisitos y los pasos.
 
-## Resumen de qué instalar
+## Instalar todo de una
+
+Desde la raíz del repo, en Arch/CachyOS:
+
+```bash
+./install-esp32.sh            # C + Rust + Go
+./install-esp32.sh c rust     # o solo lo que quieras
+```
+
+Deja `idf.py`, `espup`/`espflash` y `tinygo` listos, más los atajos `get_idf`
+y `get_esp` y el acceso al puerto serie (grupo `uucp`).
+
+### …o a mano, por lenguaje
 
 - **C:** ESP-IDF v5 (`~/esp/esp-idf`, `. export.sh`).
 - **Rust:** `cargo install espup espflash` → `espup install` → `. ~/export-esp.sh`.

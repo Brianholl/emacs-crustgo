@@ -136,6 +136,12 @@ El editor/LSP funciona igual; el build+flash lo hace cada ecosistema:
 (`crustgo-esp-flash`), que lee un archivo `.crustgo-flash` del proyecto con el
 comando de flasheo (o detecta ESP-IDF/cargo/TinyGo).
 
+Para instalar las tres cadenas (ESP-IDF, espup/espflash, TinyGo) de una:
+
+```bash
+./install-esp32.sh            # o: ./install-esp32.sh c rust go
+```
+
 Hay un "blink" listo por lenguaje en [`examples/esp32/`](examples/esp32/).
 
 ---
@@ -147,6 +153,7 @@ emacs-crustgo/
 ├── early-init.el   UI temprana (sin barras), GC de arranque
 ├── init.el         la configuración completa (F5 compila · F6 flashea ESP32)
 ├── install.sh      instala dependencias + dlv + alias/funciones + paquetes
+├── install-esp32.sh  toolchains ESP32: ESP-IDF + espup/espflash + TinyGo
 ├── examples/esp32/ blink en C (ESP-IDF), Rust (esp-hal) y Go (TinyGo)
 ├── .gitignore      excluye elpa/ y cachés
 └── elpa/           paquetes de Emacs (no se versiona)
