@@ -1,0 +1,14 @@
+# Paquetes y cachés — se regeneran solos al lanzar
+/elpa/
+/eln-cache/
+/.cache/
+/tmp/
+/var/
+/auto-save-list/
+/.lsp-session-v1
+/.extension/
+/transient/
+custom.el
+projectile-bookmarks.eld
+*.elc
+*~
