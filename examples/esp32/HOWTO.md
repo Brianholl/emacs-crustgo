@@ -89,11 +89,16 @@ poné un LED común en otro pin y cambiá `LED_GPIO` en `main/blink.c`.
 
 ## 4. Rust con esp-hal
 
-Ejemplo: [`rust-blink/`](rust-blink/) (no_std, `esp-hal`).
+Dos ejemplos:
+
+- [`rust-blink/`](rust-blink/) — GPIO simple (esp-hal 0.23), corre en S3 y clásico.
+- [`rust-sos-s3/`](rust-sos-s3/) — **LED RGB on-board WS2812** (esp-hal 1.0 +
+  `esp-hal-smartled`), SOS en Morse. Solo S3, pero es el que **sí prende** el
+  LED integrado del DevKitC.
 
 ```bash
-get_esp                       # entorno del toolchain 'esp' (solo si hace falta)
-cd examples/esp32/rust-blink
+get_esp                       # REQUERIDO: mete el linker Xtensa (gcc) en el PATH
+cd examples/esp32/rust-blink  # o: rust-sos-s3
 
 cargo run --release           # compila → flashea → monitor (vía espflash)
 ```
@@ -101,13 +106,23 @@ cargo run --release           # compila → flashea → monitor (vía espflash)
 `espflash` está puesto como `runner` en `.cargo/config.toml`, así que
 `cargo run` **flashea**. En crustgo, **F5 o F6** hacen lo mismo.
 
-**Cambiar de chip (S3 ↔ clásico):** por defecto apunta al S3.
+> **¿Usás `fish`?** El `. $HOME/export-esp.sh` (y `get_esp`) es sintaxis de
+> bash/zsh; en fish tira `Unknown command: fish_add_path`. Guardá el equivalente
+> en `~/export-esp.fish` (`set -x LIBCLANG_PATH …` + `fish_add_path …`) y hacé
+> `source ~/export-esp.fish`. Ojo: algunas terminales corren el comando externo
+> en **zsh** aunque tu shell sea fish — fijate cuál usás de verdad.
+
+**Cambiar de chip (S3 ↔ clásico)** — solo aplica a `rust-blink`. Por defecto S3:
 1. `.cargo/config.toml`: `esp32s3` → `esp32` (dos lugares).
 2. `Cargo.toml`: feature `esp32s3` → `esp32` (tres deps).
 
-> **¿No compila por versión de esp-hal?** La API embebida de Rust cambia
-> seguido. Lo más rápido es regenerar el esqueleto y pegarle el *glue* de
-> crustgo (`.cargo/config.toml`, `rust-toolchain.toml`, `.crustgo-flash`):
+> **¿No compila / no arranca por versiones de esp-hal?** La API embebida cambia
+> seguido y los crates van en "trenes" (1.0, 1.1, …) que **no se mezclan**. En
+> `rust-sos-s3`, `esp-hal-smartled` fija el tren 1.0, así que
+> `esp-bootloader-esp-idf` va en **0.4.0** (el 0.5.0 es del tren 1.1 y rompe el
+> arranque — ver tabla del paso 7). Para empezar de cero, regenerá el esqueleto
+> y pegale el *glue* de crustgo (`.cargo/config.toml`, `rust-toolchain.toml`,
+> `build.rs`, `.crustgo-flash`):
 > ```bash
 > cargo install esp-generate
 > esp-generate --chip esp32s3 mi-proyecto
@@ -172,9 +187,14 @@ del código aunque no todos los build tags).
 | `idf.py: command not found` | Te faltó `get_idf` en esa terminal. |
 | Falla al flashear / no sincroniza | Mantené **BOOT** apretado al conectar, o BOOT + reset. Bajá la velocidad: `idf.py -b 115200 flash`. |
 | Rust: `error: toolchain 'esp' is not installed` | Corré `espup install` (o `./install-esp32.sh rust`). |
+| Rust: ``error: linker `xtensa-esp32s3-elf-gcc` not found`` | No cargaste el entorno: `get_esp` (= `. ~/export-esp.sh`) antes de compilar. Es el linker Xtensa, hace falta hasta para no_std. |
 | Rust no compila (API esp-hal) | Regenerá con `esp-generate` (paso 4). |
+| Rust: `Image requires efuse blk rev >= v123.34` / `Factory app partition is not bootable` (loop infinito) | Versiones de distinto "tren": p.ej. `esp-bootloader-esp-idf 0.5.0` (tren 1.1) con `esp-hal 1.0`. El app descriptor sale corrupto. Alineá: con esp-hal 1.0 → `esp-bootloader-esp-idf = 0.4.0` (ver `rust-sos-s3`). |
+| Rust: el bootloader lee "basura" / no arranca tras tocar el build | No metas `-Tlinkall.x` en `rustflags`: con esp-hal 1.0 lo inyecta `build.rs`. Dejá `rustflags = []` en `.cargo/config.toml`. |
+| `fish`: `Unknown command: fish_add_path` al cargar el entorno | `export-esp.sh` es bash/zsh. En fish usá `~/export-esp.fish`. Y ojo: el comando externo de algunas terminales corre en **zsh**, no en fish. |
+| `sudo: a terminal is required to read the password` (al dar permiso al puerto) | Corré el `chmod`/`usermod` en una **terminal real** (Konsole), no a través del prefijo `!`/IDE que no tiene tty. |
 | TinyGo: `target not found: esp32s3` | TinyGo no soporta el S3 → usá C o Rust ahí. |
-| El LED del S3 no parpadea | Es RGB (WS2812 en GPIO48): un GPIO simple no lo prende; usá otro pin o el componente `led_strip`. |
+| El LED del S3 no parpadea | Es RGB (WS2812 en GPIO48): un GPIO simple no lo prende. En C usá el componente `led_strip`; en Rust mirá el ejemplo [`rust-sos-s3/`](rust-sos-s3/) (esp-hal-smartled). |
 
 ---
 

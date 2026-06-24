@@ -1,0 +1,5 @@
+# ESP32-S3 es Xtensa → toolchain forkeado 'esp' (lo instala espup).
+#   espup install            # crea el toolchain 'esp'
+#   . $HOME/export-esp.sh    # cargá el entorno antes de compilar (ver README)
+[toolchain]
+channel = "esp"

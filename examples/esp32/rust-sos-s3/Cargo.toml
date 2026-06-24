@@ -1,0 +1,53 @@
+[package]
+name         = "rust-sos-s3"
+version      = "0.1.0"
+edition      = "2024"
+rust-version = "1.88"
+
+[[bin]]
+name = "rust-sos-s3"
+path = "./src/bin/main.rs"
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ⚠️  CLAVE: las versiones tienen que pertenecer al MISMO "tren" de esp-hal.
+#
+#  El LED RGB on-board (WS2812 en GPIO48) se maneja con `esp-hal-smartled`, que
+#  hoy fija `esp-hal = ~1.0` (no soporta 1.1). Por eso TODO el árbol queda en el
+#  tren 1.0:
+#
+#      esp-hal                 ~1.0.0   (lo fuerza esp-hal-smartled)
+#      esp-bootloader-esp-idf   0.4.0   ← el 0.5.0 es del tren 1.1
+#
+#  Si mezclás (p.ej. esp-hal 1.0 + esp-bootloader-esp-idf 0.5.0) el "app
+#  descriptor" sale con un layout que el bootloader lee como basura y la placa
+#  NO arranca con un error tipo:
+#
+#      E (90) boot_comm: Image requires efuse blk rev >= v123.34, but chip is v1.3
+#      E (96) boot: Factory app partition is not bootable
+#
+#  Regla: esp-hal-smartled manda el tren; alineá esp-bootloader-esp-idf a él.
+# ─────────────────────────────────────────────────────────────────────────────
+[dependencies]
+esp-hal          = { version = "~1.0.0", features = ["esp32s3", "log-04", "unstable"] }
+esp-hal-smartled = { version = "0.17.0", features = ["esp32s3"] }
+smart-leds       = "0.4.0"
+
+esp-bootloader-esp-idf = { version = "0.4.0", features = ["esp32s3", "log-04"] }
+
+log              = "0.4.27"
+critical-section = "1.2.0"
+
+esp-backtrace = { version = "0.19.0", features = ["esp32s3", "panic-handler", "println"] }
+# default-features = false + jtag-serial → los logs salen por el USB nativo del
+# S3 (no por el UART), que es lo que abre el monitor de espflash.
+esp-println   = { version = "0.17.0", default-features = false, features = ["esp32s3", "log-04", "jtag-serial"] }
+
+[profile.dev]
+# El perfil debug por defecto es muy grande/lento para un micro: optimizá algo.
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1
+debug         = 2
+lto           = "fat"
+opt-level     = "s"

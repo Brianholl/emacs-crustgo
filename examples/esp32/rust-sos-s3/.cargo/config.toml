@@ -1,0 +1,18 @@
+# Específico del ESP32-S3 (Xtensa). El LED RGB on-board es propio del S3, así
+# que este ejemplo NO se cambia a ESP32 clásico (ese no tiene WS2812 integrado).
+[target.xtensa-esp32s3-none-elf]
+# espflash hace flash + monitor → `cargo run` (= F5/F6 en crustgo) flashea.
+runner = "espflash flash --monitor --chip esp32s3"
+
+[env]
+ESP_LOG = "info"
+
+[build]
+target = "xtensa-esp32s3-none-elf"
+# IMPORTANTE (esp-hal 1.0): NO pongas rustflags con -Tlinkall.x acá. El build.rs
+# ya inyecta linkall.x. Duplicarlo desordena la imagen y la placa no arranca.
+rustflags = []
+
+[unstable]
+# Xtensa no trae `core` precompilado → se compila al vuelo.
+build-std = ["core"]

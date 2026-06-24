@@ -113,6 +113,19 @@ if [ "$do_rust" -eq 1 ]; then
         # recién instalamos rustup por pacman → fijamos un toolchain base
         rustup default stable
     fi
+    # `cargo install` deja los binarios en ~/.cargo/bin; con rustup recién puesto
+    # por pacman eso puede NO estar en el PATH → ni espup ni `cargo run` (que usa
+    # espflash como runner) los encontrarían. Lo aseguramos para esta sesión…
+    export PATH="$HOME/.cargo/bin:$PATH"
+    # …y para las terminales futuras (bash/zsh + fish), por si rustup no lo hizo.
+    for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
+        [ -f "$rc" ] && { grep -q '.cargo/bin' "$rc" || echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$rc"; }
+    done
+    if [ ! -f ~/.config/fish/conf.d/cargo-path.fish ]; then
+        mkdir -p ~/.config/fish/conf.d
+        echo 'fish_add_path "$HOME/.cargo/bin"' > ~/.config/fish/conf.d/cargo-path.fish
+    fi
+
     # Herramientas (cargo install es idempotente; saltamos si ya están)
     have espup    || cargo install espup
     have espflash || cargo install espflash
@@ -125,19 +138,34 @@ if [ "$do_rust" -eq 1 ]; then
         echo "    Ya existe ~/export-esp.sh — el toolchain 'esp' ya está. (espup update para actualizar)"
     fi
 
-    # Atajo get_esp (solo hace falta para builds 'std'/esp-idf-hal; el no_std
-    # de esp-hal anda sin esto, vía rust-toolchain.toml + build-std).
+    # Atajo get_esp — REQUERIDO incluso para no_std: export-esp.sh agrega al PATH
+    # el GCC de Xtensa (xtensa-esp32s3-elf-gcc), que esp-hal usa como LINKER. Sin
+    # esto, `cargo build` falla con: linker `xtensa-esp32s3-elf-gcc` not found.
+    # (LIBCLANG_PATH, que también exporta, solo hace falta para builds 'std'.)
     add_alias get_esp ". $HOME/export-esp.sh"
     if [ -f "$HOME/export-esp.sh" ]; then
+        # Traducimos export-esp.sh (bash) a una función fish equivalente:
+        #   export PATH="DIR:$PATH"  → fish_add_path DIR   (el linker Xtensa)
+        #   export VAR="VAL"          → set -gx VAR VAL
         {
             echo "function get_esp --description 'env del toolchain esp (Rust Xtensa)'"
-            # traduce 'export VAR=val' → 'set -gx VAR val' (formato simple de espup)
-            sed -E 's/^export ([A-Za-z0-9_]+)="?([^"]*)"?.*/    set -gx \1 \2/' \
-                "$HOME/export-esp.sh" | grep '^    set -gx'
+            while IFS= read -r line; do
+                case "$line" in
+                    'export PATH='*)
+                        dirs=$(printf '%s\n' "$line" | sed -E 's/^export PATH="?(.*):\$PATH"?.*/\1/')
+                        printf '%s\n' "$dirs" | tr ':' '\n' | while IFS= read -r d; do
+                            [ -n "$d" ] && echo "    fish_add_path $d"
+                        done
+                        ;;
+                    'export '*)
+                        printf '%s\n' "$line" | sed -E 's/^export ([A-Za-z0-9_]+)="?([^"]*)"?.*/    set -gx \1 \2/'
+                        ;;
+                esac
+            done < "$HOME/export-esp.sh"
             echo "end"
         } > ~/.config/fish/functions/get_esp.fish
     fi
-    echo "    ✓ espup/espflash listos. Atajo 'get_esp' instalado."
+    echo "    ✓ espup/espflash listos. Atajo 'get_esp' instalado (cargalo antes de compilar)."
 fi
 
 # ──────────────────────────────────────────────────────────────
@@ -182,13 +210,21 @@ if [ "$do_c" -eq 1 ]; then
         printf "    ✗ idf.py  (revisá la instalación de ESP-IDF)\n"
     fi
 fi
-if [ "$do_rust" -eq 1 ]; then check espup; check espflash; fi
+if [ "$do_rust" -eq 1 ]; then
+    check espup; check espflash
+    # El chequeo que importa: ¿está el linker Xtensa al cargar el entorno?
+    if [ -f "$HOME/export-esp.sh" ] && ( . "$HOME/export-esp.sh" >/dev/null 2>&1; command -v xtensa-esp32s3-elf-gcc >/dev/null 2>&1 ); then
+        printf "    ✓ linker Xtensa  (xtensa-esp32s3-elf-gcc, vía 'get_esp')\n"
+    else
+        printf "    ✗ linker Xtensa  (falta el toolchain 'esp' → corré 'espup install')\n"
+    fi
+fi
 if [ "$do_go" -eq 1 ]; then check tinygo; check esptool; fi
 if id -nG "$USER" | grep -qw uucp; then printf "    ✓ grupo uucp (puerto serie)\n"; else printf "    ~ grupo uucp — re-logueá para activarlo\n"; fi
 
 echo
 echo "==> Listo. Para empezar:"
 [ "$do_c"   -eq 1 ] && echo "    C    →  get_idf;  cd examples/esp32/c-idf-blink;  idf.py set-target esp32s3"
-[ "$do_rust" -eq 1 ] && echo "    Rust →  cd examples/esp32/rust-blink;  cargo run --release   (o F6 en crustgo)"
+[ "$do_rust" -eq 1 ] && echo "    Rust →  get_esp;  cd examples/esp32/rust-sos-s3;  cargo run --release   (o F6 en crustgo)"
 [ "$do_go"  -eq 1 ] && echo "    Go   →  cd examples/esp32/tinygo-blink;  tinygo flash -target=esp32 -monitor ."
 echo "    (en crustgo, F6 = flashear)"
